@@ -1,11 +1,13 @@
-using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
+using SendGrid;
+using SendGrid.Helpers.Mail;
+using EDU.Models;
 
 namespace EDU.Services;
 
-public class EmailService(HttpClient httpClient, IConfiguration configuration) : IEmailService
+public class EmailService(IConfiguration configuration) : IEmailService
 {
-    public async Task SendAnalysisEmailAsync(IEnumerable<(string Name, float Confidence)> tags, string imageName)
+    public async Task SendAnalysisEmailAsync(IEnumerable<ImageTag> tags, string imageName)
     {
         var apiKey = configuration["SENDGRID_APIKEY"];
         if (string.IsNullOrEmpty(apiKey))
@@ -13,40 +15,23 @@ public class EmailService(HttpClient httpClient, IConfiguration configuration) :
             throw new InvalidOperationException("SendGrid API key not configured.");
         }
 
+        var client = new SendGridClient(apiKey);
+
         var topTags = tags.Take(3).Select(t => t.Name).ToArray();
         var analysisSummary = $"The image '{imageName}' contains {string.Join(", ", topTags)}";
 
-        var emailMessage = new
+        var message = new SendGridMessage
         {
-            personalizations = new[]
-            {
-                new
-                {
-                    to = new[]
-                    {
-                        new { email = "<receiver email>" }
-                    }
-                }
-            },
-            from = new { email = "<sender email>" },
-            subject = "Image Analysis Result",
-            content = new[]
-            {
-                new
-                {
-                    type = "text/plain",
-                    value = analysisSummary
-                }
-            }
+            From = new EmailAddress("<sender email>"),
+            Subject = "Image Analysis Result",
+            PlainTextContent = analysisSummary
         };
+        message.AddTo("<receiver email>");
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.sendgrid.com/v3/mail/send")
+        var response = await client.SendEmailAsync(message);
+        if (!response.IsSuccessStatusCode)
         {
-            Headers = { { "Authorization", $"Bearer {apiKey}" } },
-            Content = JsonContent.Create(emailMessage)
-        };
-
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+            throw new Exception($"Failed to send email: {response.StatusCode}");
+        }
     }
 }

@@ -9,19 +9,20 @@ public class ProcessAnalysis(ILogger<ProcessAnalysis> logger, IEmailService emai
 {
 
     [Function(nameof(ProcessAnalysis))]
-    public async Task Run([CosmosDBTrigger("TestDB", "TestCollection", Connection = "COSMOS_ENDPOINT")] IReadOnlyList<ImageAnalysisDocument> documents)
+    public async Task Run([CosmosDBTrigger("TestDB", "TestCollection", Connection = "forfuncs_COSMOS_DB")] IReadOnlyList<ImageAnalysisDocument> documents)
     {
-        if (documents is not null && documents.Count > 0)
+        if (documents is null || documents.Count == 0)
         {
-            foreach (var document in documents)
-            {
-                logger.LogInformation("New analysis result added to CosmosDB with ID = {id}", document.Id);
+            return;
+        }
 
-                var tags = document.Tags.Select(t => (t.Name, t.Confidence)).ToList();
-                await emailService.SendAnalysisEmailAsync(tags, document.ImageName);
+        foreach (var document in documents)
+        {
+            logger.LogInformation("New analysis result added to CosmosDB with ID = {id}", document.Id);
 
-                logger.LogInformation("Email sent for image: {imageName}", document.ImageName);
-            }
+            await emailService.SendAnalysisEmailAsync(document.Tags, document.ImageName);
+
+            logger.LogInformation("Email sent for image: {imageName}", document.ImageName);
         }
     }
 }
