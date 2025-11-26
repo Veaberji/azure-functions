@@ -17,6 +17,7 @@ builder.Services
     .AddScoped<IImageProcessingService, ImageProcessingService>()
     .AddScoped<IImageAnalysisService, ImageAnalysisService>()
     .AddScoped<IEmailService, EmailService>()
+    .AddScoped<IBlobStorageService, BlobStorageService>()
     .AddHttpClient()
     .AddSingleton(sp =>
     {
