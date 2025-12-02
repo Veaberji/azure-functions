@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using EDU.Services;
 using Azure.AI.Vision.ImageAnalysis;
 using Azure;
+using Microsoft.Azure.Cosmos;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -25,6 +26,12 @@ builder.Services
         var endpoint = config["VISION_ENDPOINT"];
         var key = config["VISION_KEY"];
         return new ImageAnalysisClient(new Uri(endpoint!), new AzureKeyCredential(key!));
+    })
+    .AddSingleton<CosmosClient>(sp =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        var connectionString = config["COSMOS_DB"];
+        return new CosmosClient(connectionString);
     });
 
 builder.Build().Run();
