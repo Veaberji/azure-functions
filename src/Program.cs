@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using EDU.Services;
 using Azure.AI.Vision.ImageAnalysis;
+using Azure.AI.TextAnalytics;
 using Azure;
 using Microsoft.Azure.Cosmos;
 
@@ -19,6 +20,8 @@ builder.Services
     .AddScoped<IImageAnalysisService, ImageAnalysisService>()
     .AddScoped<IEmailService, EmailService>()
     .AddScoped<IBlobStorageService, BlobStorageService>()
+    .AddScoped<ITwitterService, TwitterService>()
+    .AddScoped<ISentimentService, SentimentService>()
     .AddHttpClient()
     .AddSingleton(sp =>
     {
@@ -26,6 +29,13 @@ builder.Services
         var endpoint = config["VISION_ENDPOINT"];
         var key = config["VISION_KEY"];
         return new ImageAnalysisClient(new Uri(endpoint!), new AzureKeyCredential(key!));
+    })
+    .AddSingleton(sp =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        var endpoint = config["TEXT_ANALYTICS_ENDPOINT"];
+        var key = config["TEXT_ANALYTICS_KEY"];
+        return new TextAnalyticsClient(new Uri(endpoint!), new AzureKeyCredential(key!));
     })
     .AddSingleton<CosmosClient>(sp =>
     {

@@ -7,7 +7,6 @@ namespace EDU.Func;
 
 public class ProcessAnalysis(ILogger<ProcessAnalysis> logger, IEmailService emailService)
 {
-
     [Function(nameof(ProcessAnalysis))]
     public async Task Run([CosmosDBTrigger("TestDB", "TestCollection", Connection = "forfuncs_COSMOS_DB")] IReadOnlyList<ImageAnalysisDocument> documents)
     {
