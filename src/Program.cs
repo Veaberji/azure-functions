@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using EDU.Services;
+using EDU.Func.Durable.Services;
 using Azure.AI.Vision.ImageAnalysis;
 using Azure.AI.TextAnalytics;
 using Azure;
@@ -22,6 +23,7 @@ builder.Services
     .AddScoped<IBlobStorageService, BlobStorageService>()
     .AddScoped<ITwitterService, TwitterService>()
     .AddScoped<ISentimentService, SentimentService>()
+    .AddSingleton<IPaymentGateway, SimulatedPaymentGateway>()
     .AddHttpClient()
     .AddSingleton(sp =>
     {
